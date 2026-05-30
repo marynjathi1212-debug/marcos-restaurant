@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Marco's Café & Restaurant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --ink: #1a1208;
+      --cream: #fdf8f0;
+      --warm: #f5ede0;
+      --gold: #c49a3c;
+      --gold-light: #e8c876;
+      --rust: #8b3a1e;
+      --espresso: #2d1a0a;
+      --sage: #4a5e3a;
+      --muted: #7a6a55;
+      --border: rgba(196,154,60,0.2);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE TEXTURE ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url('data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.75\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.03\'/%3E%3C/svg%3E');
+      pointer-events: none; z-index: 1000; opacity: 0.5;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; width: 100%; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.4rem 4rem;
+      transition: background 0.4s, padding 0.4s;
+    }
+    nav.scrolled {
+      background: rgba(253,248,240,0.96);
+      backdrop-filter: blur(12px);
+      padding: 1rem 4rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem; font-weight: 600;
+      color: var(--cream); letter-spacing: 0.04em;
+      text-decoration: none; transition: color 0.4s;
+    }
+    nav.scrolled .nav-logo { color: var(--espresso); }
+    .nav-logo em { font-style: italic; color: var(--gold-light); }
+    nav.scrolled .nav-logo em { color: var(--gold); }
+
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase;
+      text-decoration: none; color: rgba(255,255,255,0.8);
+      transition: color 0.3s; font-weight: 400;
+    }
+    nav.scrolled .nav-links a { color: var(--muted); }
+    .nav-links a:hover { color: var(--gold-light); }
+    nav.scrolled .nav-links a:hover { color: var(--gold); }
+
+    .nav-reserve {
+      font-family: 'Jost', sans-serif;
+      font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0.6rem 1.5rem; border: 1px solid rgba(255,255,255,0.5);
+      color: #fff; text-decoration: none;
+      transition: all 0.3s; background: transparent;
+    }
+    nav.scrolled .nav-reserve {
+      border-color: var(--gold); color: var(--gold);
+    }
+    .nav-reserve:hover { background: var(--gold); border-color: var(--gold); color: var(--espresso); }
+
+    /* ── HERO ── */
+    .hero {
+      height: 100vh; min-height: 640px;
+      position: relative; display: flex; align-items: center;
+      overflow: hidden;
+    }
+
+    /* Photo upload zone / hero bg */
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, #2d1a0a 0%, #4a2e12 40%, #1a1208 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hero-bg img {
+      width: 100%; height: 100%; object-fit: cover; opacity: 0.55;
+    }
+    .hero-bg-placeholder {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 1rem; cursor: pointer;
+    }
+    .hero-bg-placeholder .upload-ring {
+      width: 120px; height: 120px; border-radius: 50%;
+      border: 2px dashed rgba(255,255,255,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.8rem; transition: border-color 0.3s;
+    }
+    .hero-bg-placeholder:hover .upload-ring { border-color: var(--gold-light); }
+    .hero-bg-placeholder p { color: rgba(255,255,255,0.45); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+    .hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to right, rgba(10,6,2,0.75) 0%, rgba(10,6,2,0.3) 60%, transparent 100%);
+    }
+    .hero-content {
+      position: relative; z-index: 2;
+      padding: 0 4rem; max-width: 700px;
+    }
+    .hero-eyebrow {
+      font-size: 0.72rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--gold-light); margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+      animation: fadeUp 0.8s ease both;
+    }
+    .hero-eyebrow::before { content: ''; width: 36px; height: 1px; background: var(--gold); }
+    .hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3.5rem, 8vw, 7rem);
+      font-weight: 300; color: #fff; line-height: 0.95;
+      margin-bottom: 1.6rem;
+      animation: fadeUp 0.9s 0.1s ease both;
+    }
+    .hero h1 em { font-style: italic; color: var(--gold-light); }
+    .hero-desc {
+      font-size: 1rem; color: rgba(255,255,255,0.65);
+      line-height: 1.8; max-width: 420px; margin-bottom: 2.8rem;
+      animation: fadeUp 0.9s 0.2s ease both;
+    }
+    .hero-actions {
+      display: flex; gap: 1.2rem; align-items: center;
+      animation: fadeUp 0.9s 0.3s ease both;
+    }
+    .btn-primary {
+      background: var(--gold); color: var(--espresso);
+      font-family: 'Jost', sans-serif; font-size: 0.78rem;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      padding: 1rem 2.2rem; text-decoration: none;
+      transition: background 0.25s, transform 0.2s;
+      font-weight: 500;
+    }
+    .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); }
+    .btn-ghost {
+      font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: rgba(255,255,255,0.7); text-decoration: none;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      padding-bottom: 2px; transition: color 0.25s, border-color 0.25s;
+    }
+    .btn-ghost:hover { color: var(--gold-light); border-color: var(--gold-light); }
+
+    /* Scroll indicator */
+    .scroll-hint {
+      position: absolute; bottom: 2.5rem; left: 50%;
+      transform: translateX(-50%); z-index: 2;
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+      color: rgba(255,255,255,0.4); font-size: 0.65rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      animation: fadeUp 1s 0.6s ease both;
+    }
+    .scroll-line {
+      width: 1px; height: 50px; background: rgba(255,255,255,0.15);
+      position: relative; overflow: hidden;
+    }
+    .scroll-line::after {
+      content: ''; position: absolute; top: -100%; left: 0;
+      width: 100%; height: 100%; background: var(--gold);
+      animation: scrollDrop 1.8s ease-in-out infinite;
+    }
+    @keyframes scrollDrop { 0%{top:-100%} 100%{top:200%} }
+
+    /* ── ABOUT STRIP ── */
+    .about-strip {
+      display: grid; grid-template-columns: 1fr 2px 1fr 2px 1fr;
+      background: var(--espresso);
+      padding: 3rem 4rem; gap: 0;
+    }
+    .strip-divider { background: rgba(196,154,60,0.3); }
+    .strip-item {
+      padding: 0 3rem; text-align: center;
+    }
+    .strip-item:first-child { padding-left: 0; }
+    .strip-item:last-child { padding-right: 0; }
+    .strip-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.8rem; font-weight: 300; color: var(--gold);
+      line-height: 1;
+    }
+    .strip-label { font-size: 0.72rem; color: rgba(255,255,255,0.45); letter-spacing: 0.15em; text-transform: uppercase; margin-top: 0.4rem; }
+
+    /* ── SECTION COMMONS ── */
+    .section { padding: 7rem 4rem; }
+    .section-label {
+      font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .section-label::before { content: ''; width: 28px; height: 1px; background: var(--gold); }
+    h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.2rem, 4vw, 3.5rem);
+      font-weight: 300; line-height: 1.1;
+    }
+
+    /* ── STORY ── */
+    .story-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6rem;
+      max-width: 1200px; margin: 0 auto; align-items: center;
+    }
+    .story-images {
+      position: relative; height: 560px;
+    }
+    .story-img {
+      position: absolute; overflow: hidden;
+      background: var(--warm);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .story-img img { width: 100%; height: 100%; object-fit: cover; }
+    .story-img-placeholder {
+      display: flex; flex-direction: column; align-items: center; gap: 0.8rem;
+      color: var(--muted); font-size: 0.75rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .story-img-placeholder .icon { font-size: 2.2rem; opacity: 0.4; }
+    .story-img:hover .story-img-placeholder .icon { opacity: 0.7; }
+
+    .story-img-1 { width: 72%; height: 70%; top: 0; left: 0; }
+    .story-img-2 { width: 52%; height: 52%; bottom: 0; right: 0; border: 6px solid var(--cream); }
+
+    .story-text .section-label { margin-bottom: 1.2rem; }
+    .story-text h2 { margin-bottom: 1.8rem; }
+    .story-text p {
+      color: var(--muted); line-height: 1.9; margin-bottom: 1.2rem;
+      font-size: 0.95rem;
+    }
+    .story-text p strong { color: var(--ink); font-weight: 500; }
+
+    .story-signature {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem; font-style: italic; color: var(--gold);
+      margin-top: 2rem;
+    }
+
+    /* ── MENU ── */
+    .menu-bg { background: var(--warm); }
+    .menu-inner { max-width: 1200px; margin: 0 auto; }
+    .menu-header { text-align: center; margin-bottom: 3.5rem; }
+    .menu-header .section-label { justify-content: center; }
+    .menu-header .section-label::before { display: none; }
+
+    .menu-tabs {
+      display: flex; justify-content: center; gap: 0;
+      border-bottom: 1px solid var(--border); margin-bottom: 3rem;
+    }
+    .menu-tab {
+      font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase;
+      padding: 0.8rem 2rem; cursor: pointer; color: var(--muted);
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: all 0.25s; background: none; border-top: none; border-left: none; border-right: none;
+      font-family: 'Jost', sans-serif; font-weight: 400;
+    }
+    .menu-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .menu-item {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 1.5rem 2rem; border-bottom: 1px solid var(--border);
+      gap: 1rem; transition: background 0.2s;
+    }
+    .menu-item:hover { background: rgba(196,154,60,0.05); }
+    .menu-item:nth-child(even) { border-left: 1px solid var(--border); }
+    .menu-item-info { flex: 1; }
+    .menu-item-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem; font-weight: 600; margin-bottom: 0.3rem;
+    }
+    .menu-item-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+    .menu-item-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; color: var(--gold); white-space: nowrap;
+    }
+    .menu-panel { display: none; }
+    .menu-panel.active { display: grid; grid-template-columns: 1fr 1fr; }
+
+    /* ── GALLERY ── */
+    .gallery-section { padding: 7rem 0; background: var(--cream); }
+    .gallery-header { text-align: center; padding: 0 4rem; margin-bottom: 3rem; }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: 220px 220px;
+      gap: 6px;
+    }
+    .gallery-cell {
+      background: var(--warm); overflow: hidden;
+      position: relative; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .gallery-cell img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    .gallery-cell:hover img { transform: scale(1.06); }
+    .gallery-cell:nth-child(1) { grid-column: 1/3; grid-row: 1/2; }
+    .gallery-cell:nth-child(4) { grid-column: 4/5; grid-row: 1/3; }
+    .gallery-cell:nth-child(5) { grid-column: 1/2; grid-row: 2/3; }
+    .gallery-cell:nth-child(6) { grid-column: 2/4; grid-row: 2/3; }
+
+    .gallery-placeholder {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0.7rem; color: var(--muted); width: 100%; height: 100%;
+      justify-content: center; transition: background 0.2s;
+    }
+    .gallery-placeholder:hover { background: rgba(196,154,60,0.06); }
+    .gallery-placeholder .g-icon { font-size: 2rem; opacity: 0.35; }
+    .gallery-placeholder p { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.5; }
+    .gallery-upload-btn {
+      position: absolute; inset: 0; opacity: 0;
+      cursor: pointer; font-size: 0;
+    }
+
+    /* ── HOURS & LOCATION ── */
+    .info-section {
+      background: var(--espresso);
+      display: grid; grid-template-columns: 1fr 1fr; min-height: 480px;
+    }
+    .info-left { padding: 6rem 4rem; border-right: 1px solid rgba(196,154,60,0.15); }
+    .info-right { padding: 6rem 4rem; }
+    .info-left .section-label, .info-right .section-label { color: var(--gold); }
+    .info-left h2, .info-right h2 { color: #fff; margin-bottom: 2.5rem; }
+
+    .hours-list { list-style: none; }
+    .hours-item {
+      display: flex; justify-content: space-between;
+      padding: 0.9rem 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.88rem;
+    }
+    .hours-day { color: rgba(255,255,255,0.5); letter-spacing: 0.06em; }
+    .hours-time { color: rgba(255,255,255,0.85); }
+    .hours-closed { color: var(--rust); }
+
+    .contact-item {
+      display: flex; align-items: flex-start; gap: 1.2rem;
+      margin-bottom: 1.8rem;
+    }
+    .contact-icon { font-size: 1.2rem; margin-top: 0.1rem; flex-shrink: 0; }
+    .contact-label { font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.25rem; }
+    .contact-val { font-size: 0.92rem; color: rgba(255,255,255,0.8); line-height: 1.6; }
+    .contact-val a { color: inherit; text-decoration: none; }
+    .contact-val a:hover { color: var(--gold); }
+
+    /* ── RESERVATION ── */
+    .reservation-section { background: var(--cream); padding: 7rem 4rem; }
+    .res-inner { max-width: 700px; margin: 0 auto; text-align: center; }
+    .res-inner .section-label { justify-content: center; }
+    .res-inner .section-label::before { display: none; }
+    .res-inner h2 { margin-bottom: 0.8rem; }
+    .res-inner > p { color: var(--muted); margin-bottom: 3rem; font-size: 0.95rem; line-height: 1.7; }
+
+    .res-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; text-align: left; }
+    .form-group { display: flex; flex-direction: column; gap: 0.45rem; }
+    .form-group.full { grid-column: 1/-1; }
+    .form-group label {
+      font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      background: #fff; border: 1px solid var(--border);
+      padding: 0.85rem 1rem; font-family: 'Jost', sans-serif;
+      font-size: 0.88rem; color: var(--ink); outline: none;
+      transition: border-color 0.25s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--gold);
+    }
+    .form-group textarea { resize: vertical; min-height: 90px; }
+    .btn-reserve {
+      grid-column: 1/-1;
+      background: var(--espresso); color: #fff;
+      font-family: 'Jost', sans-serif; font-size: 0.78rem;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      padding: 1.1rem 2.5rem; border: none; cursor: pointer;
+      transition: background 0.25s; font-weight: 500;
+      margin-top: 0.5rem;
+    }
+    .btn-reserve:hover { background: var(--gold); color: var(--espresso); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #0d0905; color: rgba(255,255,255,0.4);
+      padding: 2.5rem 4rem;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem; font-weight: 600; color: rgba(255,255,255,0.7);
+    }
+    .footer-logo em { font-style: italic; color: var(--gold); }
+    footer p { font-size: 0.78rem; letter-spacing: 0.06em; }
+    .footer-links { display: flex; gap: 2rem; }
+    .footer-links a {
+      font-size: 0.75rem; color: rgba(255,255,255,0.35);
+      text-decoration: none; letter-spacing: 0.08em;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--gold); }
+
+    /* ── PHOTO MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      z-index: 500; display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-box {
+      background: #fff; padding: 2.5rem; max-width: 440px; width: 90%;
+      text-align: center; transform: translateY(20px);
+      transition: transform 0.3s;
+    }
+    .modal-overlay.open .modal-box { transform: translateY(0); }
+    .modal-box h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem; font-weight: 600; margin-bottom: 0.6rem; color: var(--espresso);
+    }
+    .modal-box p { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.8rem; line-height: 1.6; }
+    .modal-upload-label {
+      display: block; border: 2px dashed var(--border);
+      padding: 2rem; cursor: pointer; transition: border-color 0.2s;
+      margin-bottom: 1.2rem;
+    }
+    .modal-upload-label:hover { border-color: var(--gold); }
+    .modal-upload-label .big-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .modal-upload-label p { font-size: 0.8rem; color: var(--muted); margin: 0; }
+    .modal-close {
+      background: none; border: none; font-size: 0.78rem;
+      color: var(--muted); cursor: pointer; letter-spacing: 0.1em;
+      text-transform: uppercase; text-decoration: underline;
+    }
+    #modalFileInput { display: none; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--espresso); color: #fff;
+      padding: 0.85rem 2rem; font-size: 0.82rem;
+      letter-spacing: 0.06em; z-index: 600;
+      opacity: 0; transition: all 0.35s; white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.8s ease, transform 0.8s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width: 900px) {
+      nav { padding: 1.2rem 1.5rem; }
+      nav.scrolled { padding: 0.9rem 1.5rem; }
+      .nav-links { display: none; }
+      .hero-content { padding: 0 1.5rem; }
+      .section { padding: 4.5rem 1.5rem; }
+      .story-grid { grid-template-columns: 1fr; gap: 3rem; }
+      .story-images { height: 320px; }
+      .about-strip { grid-template-columns: 1fr; gap: 0; padding: 2rem 1.5rem; }
+      .strip-divider { display: none; }
+      .strip-item { padding: 1.2rem 0; border-bottom: 1px solid rgba(196,154,60,0.15); }
+      .menu-panel.active { grid-template-columns: 1fr; }
+      .menu-item:nth-child(even) { border-left: none; }
+      .gallery-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+      .gallery-cell { grid-column: auto !important; grid-row: auto !important; height: 180px; }
+      .info-section { grid-template-columns: 1fr; }
+      .info-left { border-right: none; border-bottom: 1px solid rgba(196,154,60,0.15); padding: 4rem 1.5rem; }
+      .info-right { padding: 4rem 1.5rem; }
+      .res-form { grid-template-columns: 1fr; }
+      footer { flex-direction: column; text-align: center; padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+
+<!-- NAV -->
+<nav id="mainNav">
+  <a href="#" class="nav-logo"><em>Marco's</em> Café</a>
+  <ul class="nav-links">
+    <li><a href="index3.html">Menu</a></li>
+  </ul>
+
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero" id="home">
+  <div class="hero-bg" id="heroBg">
+    <div class="hero-bg-placeholder" onclick="openModal('hero')">
+      <div class="upload-ring"></div>
+      <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144022.png" alt="Hero Background"/>
+      <p>Click to upload hero image</p>
+    </div>
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Est. 2018 · Nairobi, Kenya</div>
+    <h1><em>Marco's</em><br>Café &<br>Restaurant</h1>
+    <p class="hero-desc">
+      Where every dish tells a story. From our wood-fired kitchen to your table — real food, real warmth, real Marco's.
+    </p>
+    <div class="hero-actions">
+  
+    
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    Scroll
+  </div>
+</section>
+
+<!-- ── STRIP ── -->
+<div class="about-strip">
+  <div class="strip-item">
+  
+    <div class="strip-num">6+</div>
+    <div class="strip-label">Years of flavour</div>
+  </div>
+  <div class="strip-divider"></div>
+  <div class="strip-item">
+    <div class="strip-num">50+</div>
+    <div class="strip-label">Dishes on the menu</div>
+  </div>
+  <div class="strip-divider"></div>
+  <div class="strip-item">
+    <div class="strip-num">4.9★</div>
+    <div class="strip-label">Average rating</div>
+    
+  </div>
+</div>
+<img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144213.png" alt="Background Image" style="width:100%;height:auto;">
+
+
+<!-- ── STORY ── -->
+<section class="section" id="story">
+  <div class="story-grid">
+    <div class="story-images reveal">
+      <div class="story-img story-img-1" onclick="openModal('story1')">
+        <div class="story-img-placeholder">
+          <div class="icon"></div>
+          <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144051.png" alt="Story Photo 1"/>
+        </div>
+      </div>
+      <div class="story-img story-img-2" onclick="openModal('story2')">
+        <div class="story-img-placeholder">
+          <div class="icon"></div>
+          <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144051.png" alt="Story Photo 2"/>
+        </div>
+      </div>
+    </div>
+    <div class="story-text reveal" style="transition-delay:0.15s">
+      <div class="section-label">Our Story</div>
+      <h2>Born from a<br><em>love of good food</em></h2>
+      <p style="margin-top:1.5rem">
+        Marco's started as a small corner café in 2018 — just a wooden counter, an old espresso machine, and a chef with too many recipes and not enough excuses to cook them.
+      </p>
+      <p>
+        <strong>Today we're a full restaurant</strong>, but the spirit hasn't changed. Every morning starts the same way: fresh ingredients, slow prep, and the smell of something good already in the oven.
+      </p>
+      <p>
+        We cook the kind of food we want to eat ourselves — honest, generous, and made with actual care. Come as you are. Stay as long as you like.
+      </p>
+      <div class="story-signature">— Marco</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MENU ── -->
+<section class="menu-bg" id="menu">
+  <div class="section">
+    <div class="menu-inner">
+      <div class="menu-header reveal">
+        <div class="section-label">What We Serve</div>
+        <h2>The Menu</h2>
+        <p style="color:var(--muted);margin-top:0.6rem;font-size:0.92rem">Fresh ingredients, honest cooking. Prices in KSh.</p>
+      </div>
+      <div class="menu-tabs">
+        <button class="menu-tab active" onclick="switchTab('breakfast',this)">Breakfast</button>
+        <button class="menu-tab" onclick="switchTab('mains',this)">Mains</button>
+        <button class="menu-tab" onclick="switchTab('drinks',this)">Drinks</button>
+        <button class="menu-tab" onclick="switchTab('desserts',this)">Desserts</button>
+      </div>
+
+      <div class="menu-panel active" id="tab-breakfast">
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Full English Breakfast</div><div class="menu-item-desc">Eggs, bacon, sausage, toast, baked beans & grilled tomato</div></div><div class="menu-item-price">950</div></div>
+        <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144051.png" alt="Menu Item Image" style="width:100%;height:auto;margin:1rem 0;border-radius:8px;">
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Avocado Toast</div><div class="menu-item-desc">Sourdough, smashed avo, poached egg, chilli flakes</div></div><div class="menu-item-price">680</div></div>
+        <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144546.png" alt="Menu Item Image" style="width:100%;height:auto;margin:1rem 0;border-radius:8px;">
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">French Omelette</div><div class="menu-item-desc">Cheese & herb, served with salad & choice of bread</div></div><div class="menu-item-price">720</div></div>
+        <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144213.png" alt="Menu Item Image" style="width:100%;height:auto;margin:1rem 0;border-radius:8px;">
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Pancake Stack</div><div class="menu-item-desc">3 fluffy pancakes, fresh berries, maple syrup, cream</div></div><div class="menu-item-price">750</div></div>
+        <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144150.png" alt="Menu Item Image" style="width:100%;height:auto;margin:1rem 0;border-radius:8px;">
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Shakshuka</div><div class="menu-item-desc">Eggs poached in spiced tomato & pepper sauce, served with pita</div></div><div class="menu-item-price">820</div></div>
+        <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144125.png" alt="Menu Item Image" style="width:100%;height:auto;margin:1rem 0;border-radius:8px;">
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Granola Bowl</div><div class="menu-item-desc">Homemade granola, seasonal fruit, Greek yoghurt, honey</div></div><div class="menu-item-price">600</div></div>
+      <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144213.png" alt="Menu Item Image" style="width:100%;height:auto;margin:1rem 0;border-radius:8px;">
+      </div>
+
+      <div class="menu-panel" id="tab-mains">
+        <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144546.png" alt="Menu Item Image" style="width:100%;height:auto;margin:1rem 0;border-radius:8px;">
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Grilled Chicken Platter</div><div class="menu-item-desc">Herb-marinated chicken, roasted potatoes, coleslaw</div></div><div class="menu-item-price">1,350</div></div>
+        <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144051.png" alt="Menu Item Image" style="width:100%;height:auto;margin:1rem 0;border-radius:8px;">
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Beef Burger</div><div class="menu-item-desc">Double smash patty, cheddar, pickles, Marco's sauce</div></div><div class="menu-item-price">1,200</div></div>
+        <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144213.png" alt="Menu Item Image" style="width:100%;height:auto;margin:1rem 0;border-radius:8px;">
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Pasta Arrabiata</div><div class="menu-item-desc">Penne, spicy tomato, basil, parmesan, olive oil</div></div><div class="menu-item-price">980</div></div>
+        <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144125.png" alt="Menu Item Image" style="width:100%;height:auto;margin:1rem 0;border-radius:8px;">
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Fish & Chips</div><div class="menu-item-desc">Beer-battered tilapia, seasoned fries, tartar sauce</div></div><div class="menu-item-price">1,150</div></div>
+        <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144150.png" alt="Menu Item Image" style="width:100%;height:auto;margin:1rem 0;border-radius:8px;">
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Veggie Stir Fry</div><div class="menu-item-desc">Seasonal veg, soy-ginger sauce, steamed jasmine rice</div></ div>< div class =" menu - item - price " > 880 </ div > </ div >
+        <img src="C:\Users\DELL\Desktop\image\Screenshot 2026-05-30 144051.png" alt="Menu Item Image" style="width:100%;height:auto;margin:1rem 0;border-radius:8px;">
+        < divclass =" menu - item " >< divclass =" menu - item - info " >< divclass =" menu - item - name " > Club Sandwich </ div > < divclass =" menu - item - desc " > Triple-decker chicken, bacon, egg, lettuce, tomato </ div > </ div > < divclass =" menu - item - price " > １,０５０ </ div > </ div >
+      </div>
+
+      <div class="menu-panel" id="tab-drinks">
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Espresso / Americano</div><div class="menu-item-desc">Single origin beans, ground fresh to order</div></div><div class="menu-item-price">250</div></div>
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Flat White / Latte</div><div class="menu-item-desc">Silky microfoam, your choice of whole or oat milk</div></div><div class="menu-item-price">380</div></div>
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Dawa (Kenyan Toddy)</div><div class="menu-item-desc">Ginger, lime, honey, hot water — the classic cure-all</div></div><div class="menu-item-price">300</div></div>
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Fresh Juice</div><div class="menu-item-desc">Orange, watermelon, passion, mango or blend</div></div><div class="menu-item-price">350</div></div>
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Iced Chai Latte</div><div class="menu-item-desc">Spiced chai concentrate, cold milk, ice</div></div><div class="menu-item-price">420</div></div>
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Milkshakes</div><div class="menu-item-desc">Vanilla, chocolate, strawberry or salted caramel</div></div><div class="menu-item-price">500</div></div>
+      </div>
+
+      <div class="menu-panel" id="tab-desserts">
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Chocolate Lava Cake</div><div class="menu-item-desc">Warm dark chocolate, vanilla ice cream, cocoa dust</div></div><div class="menu-item-price">650</div></div>
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Cheesecake of the Day</div><div class="menu-item-desc">Ask your server — it changes with what's fresh</div></div><div class="menu-item-price">580</div></div>
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Crème Brûlée</div><div class="menu-item-desc">Classic vanilla custard, caramelised sugar crust</div></div><div class="menu-item-price">620</div></div>
+        <div class="menu-item"><div class="menu-item-info"><div class="menu-item-name">Fruit Tart</div><div class="menu-item-desc">Butter pastry, pastry cream, seasonal fresh fruit</div></div><div class="menu-item-price">520</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── GALLERY ── -->
+<section class="gallery-section" id="gallery">
+  <div class="gallery-header reveal">
+    <div class="section-label" style="justify-content:center"><span style="width:28px;height:1px;background:var(--gold);display:inline-block;margin-right:1rem;vertical-align:middle"></span>Gallery</div>
+    <h2>A peek inside <em>Marco's</em></h2>
+    <p style="color:var(--muted);margin-top:0.6rem;font-size:0.88rem">Click any photo to add your own</p>
+  </div>
+  <div class="gallery-grid">
+    <div class="gallery-cell" onclick="openModal('g1')"><div class="gallery-placeholder"><div class="g-icon"></div><p>Kitchen</p></div></div>
+    <div class="gallery-cell" onclick="openModal('g2')"><div class="gallery-placeholder"><div class="g-icon"></div><p>Coffee</p></div></div>
+    <div class="gallery-cell" onclick="openModal('g3')"><div class="gallery-placeholder"><div class="g-icon"></div><p>Dishes</p></div></div>
+    <div class="gallery-cell" onclick="openModal('g4')"><div class="gallery-placeholder"><div class="g-icon"></div><p>Ambiance</p></div></div>
+    <div class="gallery-cell" onclick="openModal('g5')"><div class="gallery-placeholder"><div class="g-icon"></div><p>Desserts</p></div></div>
+    <div class="gallery-cell" onclick="openModal('g6')"><div class="gallery-placeholder"><div class="g-icon"></div><p>Vibes</p></div></div>
+  </div>
+</section>
+
+<!-- ── HOURS & VISIT ── -->
+<div class="info-section" id="visit">
+  <div class="info-left">
+    <div class="section-label">Opening Hours</div>
+    <h2>When We're<br><em>Open</em></h2>
+    <ul class="hours-list">
+      <li class="hours-item"><span class="hours-day">Monday – Friday</span><span class="hours-time">7:00 AM – 10:00 PM</span></li>
+      <li class="hours-item"><span class="hours-day">Saturday</span><span class="hours-time">8:00 AM – 11:00 PM</span></li>
+      <li class="hours-item"><span class="hours-day">Sunday</span><span class="hours-time">8:00 AM – 9:00 PM</span></li>
+      <li class="hours-item"><span class="hours-day">Public Holidays</span><span class="hours-time">9:00 AM – 8:00 PM</span></li>
+    </ul>
+  </div>
+  <div class="info-right">
+    <div class="section-label">Find Us</div>
+    <h2>Come<br><em>Visit Us</em></h2>
+    <div class="contact-item">
+      <div class="contact-icon"></div>
+      <div>
+        <div class="contact-label">Address</div>
+        <div class="contact-val">14 Westlands Road, Westlands<br>Nairobi, Kenya</div>
+      </div>
+    </div>
+    <div class="contact-item">
+      <div class="contact-icon"></div>
+      <div>
+        <div class="contact-label">Phone</div>
+        <div class="contact-val"><a href="tel:+254700000000">+254 700 000 000</a></div>
+      </div>
+    </div>
+    <div class="contact-item">
+      <div class="contact-icon"></div>
+      <div>
+        <div class="contact-label">Email</div>
+        <div class="contact-val"><a href="mailto:hello@marcoscafe.co.ke">hello@marcoscafe.co.ke</a></div>
+      </div>
+    </div>
+    <div class="contact-item">
+      <div class="contact-icon"></div>
+      <div>
+        <div class="contact-label">WhatsApp</div>
+        <div class="contact-val"><a href="#">Chat with us on WhatsApp</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── RESERVATION ── -->
+<section class="reservation-section" id="reserve">
+  <div class="res-inner">
+    <div class="section-label">Book a Table</div>
+    <h2>Reserve Your <em>Spot</em></h2>
+    <p>We'd love to have you. Fill in the form and we'll confirm your reservation within the hour.</p>
+    <div class="res-form">
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" placeholder="e.g. Mary Njathi"/>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" placeholder="+254 700 000 000"/>
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date"/>
+      </div>
+      <div class="form-group">
+        <label>Time</label>
+        <input type="time"/>
+      </div>
+      <div class="form-group">
+        <label>Number of Guests</label>
+        <select>
+          <option>1 person</option>
+          <option>2 people</option>
+          <option>3–4 people</option>
+          <option>5–6 people</option>
+          <option>7+ people (group)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Occasion (optional)</label>
+        <select>
+          <option value="">Just dining</option>
+          <option>Birthday</option>
+          <option>Anniversary</option>
+          <option>Business lunch</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Special Requests</label>
+        <textarea placeholder="Dietary needs, seating preference, anything else…"></textarea>
+      </div>
+      <button class="btn-reserve" onclick="submitReservation()">Confirm Reservation</button>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo"><em>Marco's</em> Café & Restaurant</div>
+  <p>© 2025 Marco's · Nairobi, Kenya 🇰🇪 · All rights reserved</p>
+  <div class="footer-links">
+    <a href="#">Instagram</a>
+    <a href="#">Facebook</a>
+    <a href="#">WhatsApp</a>
+  </div>
+</footer>
+
+<script>
+  // ── NAV SCROLL ──
+  const nav = document.getElementById('mainNav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // ── MENU TABS ──
+  function switchTab(name, el) {
+    document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.menu-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-'+name).classList.add('active');
+  }
+
+  // ── PHOTO UPLOAD ──
+  let currentTarget = null;
+
+  function openModal(target) {
+    currentTarget = target;
+    document.getElementById('photoModal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('photoModal').classList.remove('open');
+    currentTarget = null;
+  }
+
+  document.getElementById('photoModal').addEventListener('click', function(e) {
+    if(e.target === this) closeModal();
+  });
+
+  function handlePhotoUpload(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    const url = URL.createObjectURL(file);
+    const img = document.createElement('img');
+    img.src = url;
+
+    if(currentTarget === 'hero') {
+      const bg = document.getElementById('heroBg');
+      bg.innerHTML = '';
+      bg.appendChild(img);
+    } else if(currentTarget === 'story1') {
+      replaceStoryImg('.story-img-1', img);
+    } else if(currentTarget === 'story2') {
+      replaceStoryImg('.story-img-2', img);
+    } else if(currentTarget && currentTarget.startsWith('g')) {
+      const idx = parseInt(currentTarget.replace('g',''));
+      const cells = document.querySelectorAll('.gallery-cell');
+      const cell = cells[idx-1];
+      if(cell) {
+        cell.innerHTML = '';
+        cell.appendChild(img);
+      }
+    }
+
+    closeModal();
+    showToast('✓ Photo added successfully');
+    e.target.value = '';
+  }
+
+  function replaceStoryImg(selector, img) {
+    const el = document.querySelector(selector);
+    if(el) { el.innerHTML = ''; el.appendChild(img); }
+  }
+
+  // ── RESERVATION ──
+  function submitReservation() {
+    showToast('🎉 Reservation confirmed! We\'ll send you a reminder.');
+  }
+
+  // ── TOAST ──
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── SCROLL REVEAL ──
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  reveals.forEach(r => observer.observe(r));
+</script>
+</body>
+</html>
